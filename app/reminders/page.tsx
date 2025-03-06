@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
@@ -35,6 +35,7 @@ export default function RemindersPage() {
     ccManagers: false,
     sendCompletedSummary: true,
     sendPendingSummary: true,
+    recipients: [],
   })
 
   const [recipients, setRecipients] = useState([
@@ -44,6 +45,22 @@ export default function RemindersPage() {
 
   const [newRecipient, setNewRecipient] = useState({ email: "", name: "", role: "team-member" })
 
+  useEffect(() => {
+    const fetchSettings = async () => {
+      try {
+        const response = await fetch('/api/settings');
+        if (!response.ok) throw new Error('Failed to fetch settings');
+        const data = await response.json();
+        setReminderSettings(data);
+        setRecipients(data.recipients || []);
+      } catch (error) {
+        console.error("Error fetching settings:", error);
+      }
+    };
+
+    fetchSettings();
+  }, []);
+
   const handleSettingsChange = (key: string, value: any) => {
     setReminderSettings({
       ...reminderSettings,
@@ -52,25 +69,25 @@ export default function RemindersPage() {
   }
 
   const addRecipient = () => {
-    if (!newRecipient.email || !newRecipient.name) return
+    if (!newRecipient.email || !newRecipient.name) return;
 
-    setRecipients([...recipients, newRecipient])
-    setNewRecipient({ email: "", name: "", role: "team-member" })
-  }
+    setRecipients([...recipients, newRecipient]);
+    setNewRecipient({ email: "", name: "", role: "team-member" });
+  };
 
   const removeRecipient = (email: string) => {
-    setRecipients(recipients.filter((r) => r.email !== email))
-  }
+    setRecipients(recipients.filter((r) => r.email !== email));
+  };
 
   const handleSendTestEmail = async () => {
-    console.log("Send Test Email button clicked");
+    const tasksToSend = mockTasks.filter(task => task.reminderEnabled);
     try {
       const response = await fetch('/api/sendReminderEmails', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ tasks: mockTasks }),
+        body: JSON.stringify({ tasks: tasksToSend }),
       });
 
       console.log("Response received:", response);
@@ -96,6 +113,56 @@ export default function RemindersPage() {
       });
     }
   }
+
+  const handleSaveSettings = async () => {
+    try {
+      const settingsToSave = {
+        ...reminderSettings,
+        recipients,
+      };
+
+      const response = await fetch('/api/settings', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(settingsToSave),
+      });
+
+      if (!response.ok) throw new Error('Failed to save settings');
+      toast({
+        title: "Settings Saved",
+        description: "Your reminder settings have been saved successfully.",
+        action: <ToastAction altText="Close">Close</ToastAction>,
+      });
+    } catch (error) {
+      console.error("Error saving settings:", error);
+      toast({
+        variant: "destructive",
+        title: "Failed to save settings",
+        description: "There was an error saving your settings. Please try again.",
+        action: <ToastAction altText="Try again">Try again</ToastAction>,
+      });
+    }
+  };
+
+  const handleClearSettings = () => {
+    setReminderSettings({
+      enabled: true,
+      frequency: "daily",
+      time: "09:00",
+      sendToTaskOwner: true,
+      ccManagers: false,
+      sendCompletedSummary: true,
+      sendPendingSummary: true,
+      recipients: [],
+    });
+    toast({
+      title: "Settings Cleared",
+      description: "Your reminder settings have been cleared.",
+      action: <ToastAction altText="Close">Close</ToastAction>,
+    });
+  };
 
   return (
     <div className="container mx-auto py-10">
@@ -404,9 +471,12 @@ export default function RemindersPage() {
                 Send Test Email
               </Button>
 
-              <Button className="w-full">
-                <Save className="h-4 w-4 mr-2" />
+              <Button className="w-full" onClick={handleSaveSettings}>
                 Save Settings
+              </Button>
+
+              <Button className="w-full" variant="destructive" onClick={handleClearSettings}>
+                Clear Settings
               </Button>
             </div>
           </CardContent>

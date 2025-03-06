@@ -1,4 +1,5 @@
 import nodemailer from 'nodemailer';
+// Remove the import statement for Task type to avoid conflict with local declaration
 
 type Task = {
   id: string;
@@ -7,6 +8,7 @@ type Task = {
   dueDate: Date | undefined;
   completed: boolean;
   reminderEnabled: boolean;
+  recipients: string[];
 };
 
 // 🔹 Mock tasks
@@ -18,6 +20,7 @@ const tasks: Task[] = [
     dueDate: new Date(Date.now() + 2 * 24 * 60 * 60 * 1000), // Due in 2 days
     completed: false,
     reminderEnabled: true,
+    recipients: ["youabd50@gmail.com"],
   },
   {
     id: "2",
@@ -26,6 +29,7 @@ const tasks: Task[] = [
     dueDate: new Date(Date.now() + 1 * 24 * 60 * 60 * 1000), // Due in 1 day
     completed: true,
     reminderEnabled: true,
+    recipients: ["manager@example.com"],
   },
 ];
 
@@ -39,7 +43,7 @@ const transporter = nodemailer.createTransport({
 });
 
 // 🔹 Function to send reminder emails
-export async function sendReminderEmails() {
+export async function sendReminderEmails(tasks: Task[]) {
   const pendingTasks = tasks.filter((task) => !task.completed && task.reminderEnabled);
   const completedTasks = tasks.filter((task) => task.completed && task.reminderEnabled);
 
@@ -85,7 +89,7 @@ Task Reminder System`;
 
   return {
     from: '"Task Reminder System" <youabd50@gmail.com>',
-    to: "youabd50@gmail.com", // 🔹 Replace with the recipient's email
+    to: task.recipients.join(", "),
     subject,
     text,
   };
@@ -112,8 +116,41 @@ Task Reminder System`;
 
   return {
     from: '"Task Reminder System" <youabd50@gmail.com>',
-    to: "youabd50@gmail.com", // 🔹 Replace with the recipient's email
+    to: tasks.flatMap((task) => task.recipients),
     subject,
     text,
   };
+}
+
+// Mock function to fetch tasks
+export async function fetchTasks() {
+  const tasks = [
+    {
+      id: "1",
+      title: "Complete project proposal",
+      description: "Finish the Q3 project proposal for client review",
+      dueDate: new Date(Date.now() + 2 * 24 * 60 * 60 * 1000), // 2 days from now
+      completed: false,
+      reminderEnabled: true,
+      recipients: ["youabd50@gmail.com"],
+    },
+    {
+      id: "2",
+      title: "Weekly team meeting",
+      description: "Prepare agenda for the weekly team sync",
+      dueDate: new Date(Date.now() + 1 * 24 * 60 * 60 * 1000), // 1 day from now
+      completed: true,
+      reminderEnabled: true,
+      recipients: ["manager@example.com"],
+    },
+  ];
+
+  // Convert dueDate to Date object if it exists
+  tasks.forEach(task => {
+    if (typeof task.dueDate === 'string') {
+      task.dueDate = new Date(task.dueDate);
+    }
+  });
+
+  return tasks;
 }

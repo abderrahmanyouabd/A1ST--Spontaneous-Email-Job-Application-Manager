@@ -16,13 +16,14 @@ import { format } from "date-fns"
 import { cn } from "@/lib/utils"
 
 // Task type definition
-type Task = {
+export type Task = {
   id: string
   title: string
   description: string
   dueDate: Date | undefined
   completed: boolean
   reminderEnabled: boolean
+  recipients: string[]
 }
 
 export default function TasksPage() {
@@ -35,6 +36,7 @@ export default function TasksPage() {
       dueDate: new Date(Date.now() + 2 * 24 * 60 * 60 * 1000), // 2 days from now
       completed: false,
       reminderEnabled: true,
+      recipients: ["youabd50@gmail.com"],
     },
     {
       id: "2",
@@ -43,6 +45,7 @@ export default function TasksPage() {
       dueDate: new Date(Date.now() + 1 * 24 * 60 * 60 * 1000), // 1 day from now
       completed: true,
       reminderEnabled: true,
+      recipients: ["manager@example.com"],
     },
   ])
 
@@ -52,6 +55,7 @@ export default function TasksPage() {
     dueDate: undefined,
     completed: false,
     reminderEnabled: true,
+    recipients: [],
   })
 
   const [date, setDate] = useState<Date | undefined>(undefined)
@@ -67,6 +71,7 @@ export default function TasksPage() {
       dueDate: newTask.dueDate,
       completed: false,
       reminderEnabled: newTask.reminderEnabled || false,
+      recipients: newTask.recipients || [],
     }
 
     setTasks([...tasks, task])
@@ -76,6 +81,7 @@ export default function TasksPage() {
       dueDate: undefined,
       completed: false,
       reminderEnabled: true,
+      recipients: [],
     })
     setDate(undefined)
   }

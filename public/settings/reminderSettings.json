@@ -1,0 +1,16 @@
+{
+  "enabled": true,
+  "frequency": "daily",
+  "time": "09:00",
+  "sendToTaskOwner": true,
+  "ccManagers": false,
+  "sendCompletedSummary": true,
+  "sendPendingSummary": true,
+  "recipients": [
+    {
+      "email": "youabd50@gmail.com",
+      "name": "Atos",
+      "role": "team-member"
+    }
+  ]
+}
