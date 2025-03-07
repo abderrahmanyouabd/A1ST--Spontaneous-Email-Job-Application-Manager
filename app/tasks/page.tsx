@@ -19,6 +19,7 @@ import { Task } from "@/lib/types"
 import { toast } from "@/components/ui/use-toast"
 import { ToastAction } from "@/components/ui/toast"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
+import { ThemeToggle } from "@/components/theme-toggle"
 
 export default function TasksPage() {
   const [tasks, setTasks] = useState<Task[]>([])
@@ -407,12 +408,15 @@ export default function TasksPage() {
 
   return (
     <div className="flex min-h-screen w-full flex-col">
-      <div className="flex items-center p-4 border-b">
-        <Link href="/" className="flex items-center text-sm font-medium mr-4">
-          <ChevronLeft className="h-4 w-4 mr-1" />
-          Back
-        </Link>
-        <h1 className="text-xl font-bold">Job Application Manager</h1>
+      <div className="flex items-center justify-between p-4 border-b">
+        <div className="flex items-center">
+          <Link href="/" className="flex items-center text-sm font-medium mr-4">
+            <ChevronLeft className="h-4 w-4 mr-1" />
+            Back
+          </Link>
+          <h1 className="text-xl font-bold">Job Application Manager</h1>
+        </div>
+        <ThemeToggle />
       </div>
       <div className="flex-1 flex flex-col md:flex-row gap-4 p-4">
         <div className="md:w-2/3">
@@ -486,10 +490,10 @@ export default function TasksPage() {
                           </label>
                           {task.cvPath && (
                             <a
-                              href={task.cvPath}
+                              href={`/api/cv/${task.id}`}
                               target="_blank"
                               rel="noopener noreferrer"
-                              className="text-xs text-blue-500 hover:underline"
+                              className="text-xs text-blue-500 hover:underline ml-2"
                             >
                               View CV
                             </a>
@@ -783,7 +787,7 @@ export default function TasksPage() {
                 checked={newTask.reminderEnabled}
                 onCheckedChange={(checked) => setNewTask({ ...newTask, reminderEnabled: checked as boolean })}
               />
-              <Label htmlFor="reminder">Send email immediately</Label>
+              <Label htmlFor="reminder">Send Email</Label>
             </div>
           </CardContent>
           <CardFooter>

@@ -14,8 +14,7 @@
     "recipients": [
       "youabd50@gmail.com"
     ],
-    "reminderSent": true,
-    "cvPath": "/uploads/Abderrahman_Youabd_cv_1741298909189.pdf"
+    "reminderSent": true
   },
   {
     "id": "1741307678955",
@@ -32,6 +31,6 @@
     "recipients": [
       "youabd50@gmail.com"
     ],
-    "reminderSent": true
+    "reminderSent": false
   }
 ]

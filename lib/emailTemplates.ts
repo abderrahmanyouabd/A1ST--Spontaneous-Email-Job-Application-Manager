@@ -1,8 +1,51 @@
 import { Task } from './types';
+import fs from 'fs';
+import path from 'path';
+
+// Function to read templates from templates.json
+const readTemplates = () => {
+  try {
+    const templatesFilePath = path.join(process.cwd(), 'public', 'templates.json');
+    if (fs.existsSync(templatesFilePath)) {
+      const data = fs.readFileSync(templatesFilePath, 'utf8');
+      return JSON.parse(data);
+    }
+    return null;
+  } catch (error) {
+    console.error("Error reading templates:", error);
+    return null;
+  }
+};
 
 export function generateJobInquiryEmail(task: Task) {
   const { companyName, contactPerson, position, location, companyWebsite } = task;
   
+  // Try to load custom templates first
+  const customTemplates = readTemplates();
+  
+  if (customTemplates && customTemplates.subject && customTemplates.body) {
+    // Use custom templates with variable replacement
+    let subject = customTemplates.subject;
+    let body = customTemplates.body;
+    
+    // Replace variables in subject and body
+    const variables = {
+      companyName: companyName || '',
+      contactPerson: contactPerson || '',
+      position: position || '',
+      location: location || '',
+      companyWebsite: companyWebsite || ''
+    };
+    
+    Object.entries(variables).forEach(([key, value]) => {
+      subject = subject.replace(new RegExp(`{{${key}}}`, 'g'), value);
+      body = body.replace(new RegExp(`{{${key}}}`, 'g'), value);
+    });
+    
+    return { subject, body };
+  }
+  
+  // Fall back to default templates if custom ones aren't available
   const greeting = contactPerson ? `Bonjour ${contactPerson},` : 'Bonjour,';
   
   const subject = `Candidature spontanée - ${position || 'Alternance/Stage'} - ${companyName}`;

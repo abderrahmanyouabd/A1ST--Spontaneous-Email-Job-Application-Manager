@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
@@ -8,6 +8,7 @@ import { ChevronLeft, Mail, Save } from "lucide-react"
 import { Textarea } from "@/components/ui/textarea"
 import { Label } from "@/components/ui/label"
 import { Input } from "@/components/ui/input"
+import { toast } from "@/components/ui/use-toast"
 
 export default function TemplatesPage() {
   const [template, setTemplate] = useState({
@@ -30,6 +31,27 @@ Je vous remercie par avance pour l'attention que vous porterez à ma candidature
 [Votre Email]
 [Votre Téléphone]`,
   })
+
+  const [loading, setLoading] = useState(false)
+
+  // Load existing templates when the page loads
+  useEffect(() => {
+    const fetchTemplates = async () => {
+      try {
+        const response = await fetch('/api/templates');
+        if (response.ok) {
+          const data = await response.json();
+          if (data.subject || data.body) {
+            setTemplate(data);
+          }
+        }
+      } catch (error) {
+        console.error('Error loading templates:', error);
+      }
+    };
+
+    fetchTemplates();
+  }, []);
 
   const updateTemplate = (field: string, value: string) => {
     setTemplate({
@@ -58,6 +80,7 @@ Je vous remercie par avance pour l'attention que vous porterez à ma candidature
 
   const handleSaveTemplate = async () => {
     try {
+      setLoading(true);
       const response = await fetch('/api/templates', {
         method: 'POST',
         headers: {
@@ -70,10 +93,19 @@ Je vous remercie par avance pour l'attention que vous porterez à ma candidature
         throw new Error('Failed to save template');
       }
       
-      alert('Template saved successfully!');
+      toast({
+        title: "Success",
+        description: "Template saved successfully!",
+      });
     } catch (error) {
       console.error('Error saving template:', error);
-      alert('Failed to save template');
+      toast({
+        title: "Error",
+        description: "Failed to save template",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
     }
   }
 
@@ -183,9 +215,9 @@ Je vous remercie par avance pour l'attention que vous porterez à ma candidature
               </div>
             </div>
 
-            <Button className="w-full" onClick={handleSaveTemplate}>
+            <Button className="w-full" onClick={handleSaveTemplate} disabled={loading}>
               <Save className="h-4 w-4 mr-2" />
-              Sauvegarder le Modèle
+              {loading ? "Sauvegarde en cours..." : "Sauvegarder le Modèle"}
             </Button>
           </CardContent>
         </Card>

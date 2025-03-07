@@ -400,7 +400,7 @@ export default function RemindersPage() {
 
                     <div className="space-y-2">
                       <Label htmlFor="sender-name">Sender Name</Label>
-                      <Input id="sender-name" placeholder="Task Reminder System" defaultValue="Task Reminder System" />
+                      <Input id="sender-name" placeholder="A1ST -Spontaneous Job Application Manager" defaultValue="A1ST -Spontaneous Job Application Manager" />
                     </div>
                   </div>
 

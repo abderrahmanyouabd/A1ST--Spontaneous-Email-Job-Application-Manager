@@ -6,9 +6,9 @@ import { CheckCircle, Clock, Mail } from "lucide-react"
 export default function Home() {
   return (
     <div className="container mx-auto py-10">
-      <h1 className="text-4xl font-bold mb-6">Task Reminder System</h1>
+      <h1 className="text-4xl font-bold mb-6">A1ST -Spontaneous Job Application Manager</h1>
       <p className="text-lg text-muted-foreground mb-8">
-        Manage your tasks and send automatic email reminders for pending items
+        Track your job applications, manage CVs, and send automatic email reminders for follow-ups
       </p>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
@@ -51,23 +51,22 @@ export default function Home() {
           </CardContent>
         </Card>
       </div>
-
       <Card>
         <CardHeader>
           <CardTitle>How It Works</CardTitle>
-          <CardDescription>Simple steps to get started with automatic task reminders</CardDescription>
+          <CardDescription>Simple steps to get started with your job application tracking</CardDescription>
         </CardHeader>
         <CardContent>
           <ol className="list-decimal list-inside space-y-3">
-            <li className="text-muted-foreground">Create tasks and assign due dates</li>
-            <li className="text-muted-foreground">Configure email reminder settings for each task</li>
-            <li className="text-muted-foreground">Set up recipients who should receive notifications</li>
-            <li className="text-muted-foreground">Customize email templates for different reminder types</li>
-            <li className="text-muted-foreground">The system will automatically send emails based on your settings</li>
+            <li className="text-muted-foreground">Create job application tasks with company details and due dates</li>
+            <li className="text-muted-foreground">Upload and manage your CV for each application</li>
+            <li className="text-muted-foreground">Track application status (pending or completed)</li>
+            <li className="text-muted-foreground">Enable email reminders for follow-ups</li>
+            <li className="text-muted-foreground">Import and export your application data</li>
+            <li className="text-muted-foreground">Customize email templates for professional communications</li>
           </ol>
         </CardContent>
       </Card>
     </div>
   )
 }
-
