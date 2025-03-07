@@ -4,83 +4,46 @@ import { useState } from "react"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { ChevronLeft, Mail, Save } from "lucide-react"
 import { Textarea } from "@/components/ui/textarea"
 import { Label } from "@/components/ui/label"
 import { Input } from "@/components/ui/input"
 
 export default function TemplatesPage() {
-  const [templates, setTemplates] = useState({
-    taskDue: {
-      subject: "Task Due Today: {{taskTitle}}",
-      body: `Hello {{recipientName}},
+  const [template, setTemplate] = useState({
+    subject: "Candidature spontanée - {{position}} - {{companyName}}",
+    body: `Bonjour {{contactPerson}},
 
-This is a reminder that the following task is due today:
+Je me permets de vous contacter car je suis actuellement à la recherche d'une alternance {{position}} {{location}}.
 
-Task: {{taskTitle}}
-Description: {{taskDescription}}
-Due Date: {{dueDate}}
+Étudiant en Master Informatique à l'Université de Paris, je suis particulièrement intéressé par les activités de {{companyName}} {{companyWebsite}}.
 
-Please complete this task as soon as possible or update its status in the system.
+Mon parcours académique m'a permis d'acquérir de solides compétences en programmation, analyse de données et développement web, que je souhaiterais mettre à profit au sein de votre entreprise.
 
-Thank you,
-Task Reminder System`,
-    },
-    taskOverdue: {
-      subject: "OVERDUE: {{taskTitle}}",
-      body: `Hello {{recipientName}},
+Je serais ravi de pouvoir échanger avec vous concernant les possibilités d'alternance au sein de {{companyName}}. Vous trouverez en pièce jointe mon CV détaillant mon parcours et mes compétences.
 
-The following task is now overdue:
+Disponible pour un entretien à votre convenance, je reste à votre disposition pour toute information complémentaire.
 
-Task: {{taskTitle}}
-Description: {{taskDescription}}
-Due Date: {{dueDate}} (OVERDUE)
+Je vous remercie par avance pour l'attention que vous porterez à ma candidature et vous prie d'agréer l'expression de mes salutations distinguées.
 
-Please complete this task immediately or update its status in the system.
-
-Thank you,
-Task Reminder System`,
-    },
-    dailySummary: {
-      subject: "Daily Task Summary - {{date}}",
-      body: `Hello {{recipientName}},
-
-Here is your daily task summary for {{date}}:
-
-COMPLETED TASKS:
-{{completedTasks}}
-
-PENDING TASKS:
-{{pendingTasks}}
-
-UPCOMING DEADLINES:
-{{upcomingDeadlines}}
-
-Thank you,
-Task Reminder System`,
-    },
+[Votre Nom]
+[Votre Email]
+[Votre Téléphone]`,
   })
 
-  const updateTemplate = (type: string, field: string, value: string) => {
-    setTemplates({
-      ...templates,
-      [type]: {
-        ...templates[type as keyof typeof templates],
-        [field]: value,
-      },
+  const updateTemplate = (field: string, value: string) => {
+    setTemplate({
+      ...template,
+      [field]: value,
     })
   }
 
   const [previewData] = useState({
-    recipientName: "John Doe",
-    taskTitle: "Complete Project Proposal",
-    taskDescription: "Finish the Q3 project proposal for client review",
-    dueDate: "June 15, 2023",
-    date: "June 14, 2023",
-    completedTasks: "- Website redesign\n- Client meeting notes\n- Budget approval",
-    pendingTasks: "- Complete Project Proposal\n- Weekly team meeting\n- Update documentation",
-    upcomingDeadlines: "- Complete Project Proposal (Due: June 15, 2023)\n- Weekly team meeting (Due: June 16, 2023)",
+    companyName: "TechVision",
+    companyWebsite: "que j'ai pu découvrir sur votre site www.techvision.fr",
+    contactPerson: "Mme. Dubois",
+    position: "en développement web",
+    location: "à Paris",
   })
 
   const renderPreview = (template: string) => {
@@ -93,6 +56,27 @@ Task Reminder System`,
     return preview
   }
 
+  const handleSaveTemplate = async () => {
+    try {
+      const response = await fetch('/api/templates', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(template),
+      });
+      
+      if (!response.ok) {
+        throw new Error('Failed to save template');
+      }
+      
+      alert('Template saved successfully!');
+    } catch (error) {
+      console.error('Error saving template:', error);
+      alert('Failed to save template');
+    }
+  }
+
   return (
     <div className="container mx-auto py-10">
       <div className="flex items-center mb-8">
@@ -102,176 +86,106 @@ Task Reminder System`,
             Back
           </Button>
         </Link>
-        <h1 className="text-3xl font-bold">Email Templates</h1>
+        <h1 className="text-3xl font-bold">Modèle d'Email pour Alternance</h1>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         <Card className="lg:col-span-2">
           <CardHeader>
-            <CardTitle>Edit Email Templates</CardTitle>
-            <CardDescription>Customize the content of reminder emails</CardDescription>
+            <CardTitle>Modifier le Modèle</CardTitle>
+            <CardDescription>Personnalisez votre modèle de candidature spontanée</CardDescription>
           </CardHeader>
           <CardContent>
-            <Tabs defaultValue="taskDue" className="w-full">
-              <TabsList className="mb-6">
-                <TabsTrigger value="taskDue">Task Due</TabsTrigger>
-                <TabsTrigger value="taskOverdue">Task Overdue</TabsTrigger>
-                <TabsTrigger value="dailySummary">Daily Summary</TabsTrigger>
-              </TabsList>
+            <div className="space-y-6">
+              <div className="space-y-2">
+                <Label htmlFor="subject">Objet de l'Email</Label>
+                <Input
+                  id="subject"
+                  value={template.subject}
+                  onChange={(e) => updateTemplate("subject", e.target.value)}
+                />
+              </div>
 
-              <TabsContent value="taskDue" className="space-y-6">
-                <div className="space-y-2">
-                  <Label htmlFor="taskDue-subject">Email Subject</Label>
-                  <Input
-                    id="taskDue-subject"
-                    value={templates.taskDue.subject}
-                    onChange={(e) => updateTemplate("taskDue", "subject", e.target.value)}
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="taskDue-body">Email Body</Label>
-                  <Textarea
-                    id="taskDue-body"
-                    rows={12}
-                    value={templates.taskDue.body}
-                    onChange={(e) => updateTemplate("taskDue", "body", e.target.value)}
-                    className="font-mono text-sm"
-                  />
-                </div>
-              </TabsContent>
-
-              <TabsContent value="taskOverdue" className="space-y-6">
-                <div className="space-y-2">
-                  <Label htmlFor="taskOverdue-subject">Email Subject</Label>
-                  <Input
-                    id="taskOverdue-subject"
-                    value={templates.taskOverdue.subject}
-                    onChange={(e) => updateTemplate("taskOverdue", "subject", e.target.value)}
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="taskOverdue-body">Email Body</Label>
-                  <Textarea
-                    id="taskOverdue-body"
-                    rows={12}
-                    value={templates.taskOverdue.body}
-                    onChange={(e) => updateTemplate("taskOverdue", "body", e.target.value)}
-                    className="font-mono text-sm"
-                  />
-                </div>
-              </TabsContent>
-
-              <TabsContent value="dailySummary" className="space-y-6">
-                <div className="space-y-2">
-                  <Label htmlFor="dailySummary-subject">Email Subject</Label>
-                  <Input
-                    id="dailySummary-subject"
-                    value={templates.dailySummary.subject}
-                    onChange={(e) => updateTemplate("dailySummary", "subject", e.target.value)}
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="dailySummary-body">Email Body</Label>
-                  <Textarea
-                    id="dailySummary-body"
-                    rows={12}
-                    value={templates.dailySummary.body}
-                    onChange={(e) => updateTemplate("dailySummary", "body", e.target.value)}
-                    className="font-mono text-sm"
-                  />
-                </div>
-              </TabsContent>
-            </Tabs>
+              <div className="space-y-2">
+                <Label htmlFor="body">Corps de l'Email</Label>
+                <Textarea
+                  id="body"
+                  rows={15}
+                  value={template.body}
+                  onChange={(e) => updateTemplate("body", e.target.value)}
+                  className="font-mono text-sm"
+                />
+              </div>
+            </div>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader>
-            <CardTitle>Template Preview</CardTitle>
-            <CardDescription>See how your emails will look</CardDescription>
+            <CardTitle>Aperçu</CardTitle>
+            <CardDescription>Visualisation de votre email</CardDescription>
           </CardHeader>
           <CardContent className="space-y-6">
             <div className="space-y-2">
               <h3 className="font-medium flex items-center">
                 <Mail className="h-4 w-4 mr-2" />
-                Email Preview
+                Aperçu de l'Email
               </h3>
 
               <div className="border rounded-md p-4 space-y-4">
                 <div className="space-y-1">
-                  <p className="text-sm font-medium">Subject:</p>
-                  <p className="text-sm bg-muted p-2 rounded">{renderPreview(templates.taskDue.subject)}</p>
+                  <p className="text-sm font-medium">Objet:</p>
+                  <p className="text-sm bg-muted p-2 rounded">{renderPreview(template.subject)}</p>
                 </div>
 
                 <div className="space-y-1">
-                  <p className="text-sm font-medium">Body:</p>
+                  <p className="text-sm font-medium">Corps:</p>
                   <div className="text-sm bg-muted p-2 rounded whitespace-pre-wrap">
-                    {renderPreview(templates.taskDue.body)}
+                    {renderPreview(template.body)}
                   </div>
                 </div>
               </div>
             </div>
 
             <div className="space-y-2">
-              <h3 className="font-medium">Available Variables</h3>
+              <h3 className="font-medium">Variables Disponibles</h3>
               <div className="text-sm space-y-1">
                 <p>
                   <code>
-                    {`{{`}recipientName{`}}`}
+                    {`{{`}companyName{`}}`}
                   </code>{" "}
-                  - Recipient's name
+                  - Nom de l'entreprise
                 </p>
                 <p>
                   <code>
-                    {`{{`}taskTitle{`}}`}
+                    {`{{`}companyWebsite{`}}`}
                   </code>{" "}
-                  - Task title
+                  - Site web de l'entreprise
                 </p>
                 <p>
                   <code>
-                    {`{{`}taskDescription{`}}`}
+                    {`{{`}contactPerson{`}}`}
                   </code>{" "}
-                  - Task description
+                  - Nom du contact
                 </p>
                 <p>
                   <code>
-                    {`{{`}dueDate{`}}`}
+                    {`{{`}position{`}}`}
                   </code>{" "}
-                  - Task due date
+                  - Poste recherché
                 </p>
                 <p>
                   <code>
-                    {`{{`}date{`}}`}
+                    {`{{`}location{`}}`}
                   </code>{" "}
-                  - Current date
-                </p>
-                <p>
-                  <code>
-                    {`{{`}completedTasks{`}}`}
-                  </code>{" "}
-                  - List of completed tasks
-                </p>
-                <p>
-                  <code>
-                    {`{{`}pendingTasks{`}}`}
-                  </code>{" "}
-                  - List of pending tasks
-                </p>
-                <p>
-                  <code>
-                    {`{{`}upcomingDeadlines{`}}`}
-                  </code>{" "}
-                  - List of upcoming deadlines
+                  - Localisation
                 </p>
               </div>
             </div>
 
-            <Button className="w-full">
+            <Button className="w-full" onClick={handleSaveTemplate}>
               <Save className="h-4 w-4 mr-2" />
-              Save Templates
+              Sauvegarder le Modèle
             </Button>
           </CardContent>
         </Card>

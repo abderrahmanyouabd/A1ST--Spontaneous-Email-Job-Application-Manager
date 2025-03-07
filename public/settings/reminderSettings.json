@@ -1,11 +1,21 @@
 {
   "enabled": true,
   "frequency": "daily",
-  "time": "01:38",
+  "time": "04:52",
   "sendToTaskOwner": true,
   "ccManagers": false,
   "sendCompletedSummary": true,
   "sendPendingSummary": true,
+  "attachments": [
+    {
+      "name": "CV.pdf",
+      "path": "uploads/CV.pdf"
+    },
+    {
+      "name": "CoverLetter.pdf",
+      "path": "uploads/CoverLetter.pdf"
+    }
+  ],
   "recipients": [
     {
       "email": "youabd50@gmail.com",

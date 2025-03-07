@@ -72,38 +72,52 @@ async function checkTimeAndSendEmails() {
     // Parse scheduled time
     const [scheduledHour, scheduledMinute] = settings.time.split(':').map(Number);
     
+    console.log(`Current time: ${currentHour}:${currentMinute}, Scheduled time: ${scheduledHour}:${scheduledMinute}`);
+
     // Check if current time matches scheduled time (exactly the same minute)
-    // Add a check for reminderSent to prevent duplicate sends
     if (currentHour === scheduledHour && currentMinute === scheduledMinute) {
+      console.log('Time matched! Fetching tasks...');
+      
       // Fetch tasks first to check if any are eligible for sending
       const tasksResponse = await fetch('http://localhost:3000/api/tasks');
+      if (!tasksResponse.ok) {
+        throw new Error('Failed to fetch tasks');
+      }
+      
       const tasks = await tasksResponse.json();
+      console.log('All tasks:', tasks);
       
       // Only proceed if there are tasks that haven't had reminders sent
-      const eligibleTasks = tasks.filter(task => !task.reminderSent && !task.completed && task.reminderEnabled);
+      const eligibleTasks = tasks.filter(task => 
+        !task.reminderSent && 
+        !task.completed && 
+        task.reminderEnabled &&
+        task.recipients && 
+        task.recipients.length > 0
+      );
+      
+      console.log('Eligible tasks:', eligibleTasks);
       
       if (eligibleTasks.length === 0) {
         console.log('No eligible tasks found for sending reminders');
         return;
       }
       
-      console.log(`Time matched (${currentHour}:${currentMinute})! Sending scheduled emails...`);
+      console.log(`Found ${eligibleTasks.length} eligible tasks, sending emails...`);
       
       // Send emails via your API
       const emailResponse = await fetch('http://localhost:3000/api/sendReminderEmails', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ tasks }),
+        body: JSON.stringify({ tasks: eligibleTasks }),
       });
+
+      if (!emailResponse.ok) {
+        throw new Error('Failed to send emails');
+      }
       
       const result = await emailResponse.json();
       console.log('Email sending result:', result);
-      
-      // Set a timer to reset the reminderSent status sooner for testing
-      setTimeout(() => {
-        console.log('Resetting reminderSent status for all tasks...');
-        resetReminderSentStatus();
-      }, 10000); // Just 10 seconds for testing
     }
   } catch (error) {
     console.error('Error in email scheduler:', error);
@@ -119,8 +133,10 @@ const server = http.createServer((req, res) => {
 // Check every minute
 setInterval(checkTimeAndSendEmails, 60000);
 
-// Initial check on startup
+// Initial check on startup and log current settings
 checkTimeAndSendEmails();
+const settings = readReminderSettings();
+console.log('Current reminder settings:', settings);
 
 // Start server on port 3001 (different from your Next.js app)
 const PORT = 3001;

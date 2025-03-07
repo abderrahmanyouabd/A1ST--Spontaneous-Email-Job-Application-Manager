@@ -1,22 +1,36 @@
 [
   {
     "id": "1741298909189",
-    "title": "Demo Task",
-    "description": "Create a Demo",
+    "title": "Développeur Web Full-Stack chez TechFrance",
+    "description": "Entreprise spécialisée dans le développement d'applications web",
+    "companyName": "TechFrance",
+    "companyWebsite": "https://www.techfrance.fr",
+    "contactPerson": "Marie Dubois",
+    "position": "Développeur Web Full-Stack",
+    "location": "Paris",
     "dueDate": "2025-03-05T23:00:00.000Z",
     "completed": false,
-    "reminderEnabled": true,
-    "recipients": [],
-    "reminderSent": false
+    "reminderEnabled": false,
+    "recipients": [
+      "youabd50@gmail.com"
+    ],
+    "reminderSent": true
   },
   {
     "id": "1741307678955",
-    "title": "Second Task",
-    "description": "Create a Task Bro",
+    "title": "Alternance Data Science chez DataVision",
+    "description": "Alternance de 12 mois dans le domaine de l'analyse de données",
+    "companyName": "DataVision",
+    "companyWebsite": "https://www.datavision.com",
+    "contactPerson": "Jean Martin",
+    "position": "Alternance Data Science",
+    "location": "Lyon",
     "dueDate": "2025-03-05T23:00:00.000Z",
     "completed": false,
-    "reminderEnabled": true,
-    "recipients": [],
-    "reminderSent": false
+    "reminderEnabled": false,
+    "recipients": [
+      "youabd50@gmail.com"
+    ],
+    "reminderSent": true
   }
 ]
