@@ -92,13 +92,41 @@ export default function TasksPage() {
   }
 
   // Toggle task completion status
-  const toggleTaskCompletion = (id: string) => {
-    setTasks(tasks.map((task) => (task.id === id ? { ...task, completed: !task.completed } : task)))
+  const toggleTaskCompletion = (id: string, completed: boolean) => {
+    setTasks(tasks.map((task) => (task.id === id ? { ...task, completed: completed } : task)))
   }
 
   // Toggle reminder setting for a task
   const toggleReminder = (id: string) => {
     setTasks(tasks.map((task) => (task.id === id ? { ...task, reminderEnabled: !task.reminderEnabled } : task)))
+  }
+
+  // Add this function to handle toggling the reminder setting
+  const toggleReminderEnabled = async (taskId: string, enabled: boolean) => {
+    // Find the task to update
+    const updatedTasks = tasks.map(task => {
+      if (task.id === taskId) {
+        return { ...task, reminderEnabled: enabled };
+      }
+      return task;
+    });
+    
+    // Update state
+    setTasks(updatedTasks);
+    
+    // Save to server
+    try {
+      await fetch('/api/tasks', {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(updatedTasks),
+      });
+      console.log(`Reminder ${enabled ? 'enabled' : 'disabled'} for task ${taskId}`);
+    } catch (error) {
+      console.error('Error updating task reminder setting:', error);
+    }
   }
 
   // Filter tasks by completion status
@@ -151,42 +179,44 @@ export default function TasksPage() {
                   </div>
                 ) : (
                   pendingTasks.map((task) => (
-                    <div key={task.id} className="flex items-start space-x-4 p-4 border rounded-lg">
-                      <Checkbox
-                        id={`task-${task.id}`}
-                        checked={task.completed}
-                        onCheckedChange={() => toggleTaskCompletion(task.id)}
-                      />
-                      <div className="flex-1">
-                        <div className="flex justify-between">
-                          <Label htmlFor={`task-${task.id}`} className="font-medium cursor-pointer">
-                            {task.title}
-                          </Label>
-                          <Button variant="ghost" size="icon" onClick={() => deleteTask(task.id)}>
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
-                        </div>
-                        <p className="text-sm text-muted-foreground mt-1">{task.description}</p>
-                        <div className="flex items-center justify-between mt-2">
-                          {task.dueDate ? (
-                            <span className="text-xs bg-muted px-2 py-1 rounded-md flex items-center">
-                              <CalendarIcon className="h-3 w-3 mr-1" />
-                              Due: {format(task.dueDate, "PPP")}
-                            </span>
-                          ) : (
-                            <span></span>
+                    <div key={task.id} className="flex items-center justify-between p-4 border-b">
+                      <div className="flex items-center space-x-2">
+                        <Checkbox
+                          id={`task-${task.id}`}
+                          checked={task.completed}
+                          onCheckedChange={(checked) => toggleTaskCompletion(task.id, checked as boolean)}
+                        />
+                        <div className={cn(task.completed && "line-through text-muted-foreground")}>
+                          <div className="font-medium">{task.title}</div>
+                          <div className="text-sm text-muted-foreground">{task.description}</div>
+                          {task.dueDate && (
+                            <div className="text-xs text-muted-foreground">
+                              Due: {new Date(task.dueDate).toLocaleDateString()}
+                            </div>
                           )}
-                          <div className="flex items-center space-x-2">
-                            <Checkbox
-                              id={`reminder-${task.id}`}
-                              checked={task.reminderEnabled}
-                              onCheckedChange={() => toggleReminder(task.id)}
-                            />
-                            <Label htmlFor={`reminder-${task.id}`} className="text-xs cursor-pointer">
-                              Email reminder
-                            </Label>
-                          </div>
                         </div>
+                      </div>
+                      
+                      <div className="flex items-center space-x-4">
+                        <div className="flex items-center space-x-2">
+                          <Checkbox
+                            id={`reminder-${task.id}`}
+                            checked={task.reminderEnabled}
+                            onCheckedChange={(checked) => toggleReminderEnabled(task.id, checked as boolean)}
+                          />
+                          <Label htmlFor={`reminder-${task.id}`} className="text-xs">
+                            Email reminder
+                          </Label>
+                        </div>
+                        
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => deleteTask(task.id)}
+                          className="h-8 w-8 p-0"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
                       </div>
                     </div>
                   ))
@@ -202,7 +232,7 @@ export default function TasksPage() {
                       <Checkbox
                         id={`task-${task.id}`}
                         checked={task.completed}
-                        onCheckedChange={() => toggleTaskCompletion(task.id)}
+                        onCheckedChange={() => toggleTaskCompletion(task.id, !task.completed)}
                       />
                       <div className="flex-1">
                         <div className="flex justify-between">
