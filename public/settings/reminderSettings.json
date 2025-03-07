@@ -10,10 +10,6 @@
     {
       "name": "CV.pdf",
       "path": "uploads/CV.pdf"
-    },
-    {
-      "name": "CoverLetter.pdf",
-      "path": "uploads/CoverLetter.pdf"
     }
   ],
   "recipients": [

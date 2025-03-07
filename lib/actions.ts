@@ -45,7 +45,6 @@ export const resetReminderStatus = (tasks: Task[]) => {
 
 // Send job inquiry emails
 export async function sendReminderEmails(tasks: Task[]) {
-  // Get settings to access attachment configurations
   const settings = readReminderSettings();
   
   const pendingTasks = tasks.filter((task) => 
@@ -60,11 +59,14 @@ export async function sendReminderEmails(tasks: Task[]) {
     const { subject, body } = generateJobInquiryEmail(task);
     
     try {
-      // Convert attachment configs to nodemailer format
-      const attachments = settings.attachments.map((attachment: { name: string; path: string }) => ({
-        filename: attachment.name,
-        path: path.join(process.cwd(), 'public', attachment.path)
-      }));
+      // Use task-specific CV if available
+      const attachments = [];
+      if (task.cvPath) {
+        attachments.push({
+          filename: 'CV.pdf',
+          path: path.join(process.cwd(), 'public', task.cvPath)
+        });
+      }
 
       await transporter.sendMail({
         from: "youabd50@gmail.com",
@@ -121,7 +123,24 @@ export const updateTask = async (updatedTask: Task) => {
 
 // Function to delete a task
 export const deleteTask = async (taskId: string) => {
-  const tasks = await fetchTasks();
-  const updatedTasks = tasks.filter(task => task.id !== taskId);
-  saveTasks(updatedTasks);
+  try {
+    const tasks = await fetchTasks();
+    const taskToDelete = tasks.find(task => task.id === taskId);
+    
+    // Delete CV file if it exists
+    if (taskToDelete?.cvPath) {
+      const cvFilePath = path.join(process.cwd(), 'public', taskToDelete.cvPath);
+      try {
+        await fs.promises.unlink(cvFilePath);
+      } catch (error) {
+        console.error('Error deleting CV file:', error);
+      }
+    }
+
+    const updatedTasks = tasks.filter(task => task.id !== taskId);
+    saveTasks(updatedTasks);
+  } catch (error) {
+    console.error('Error deleting task:', error);
+    throw error;
+  }
 };

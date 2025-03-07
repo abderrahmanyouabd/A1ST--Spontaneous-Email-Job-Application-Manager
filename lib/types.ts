@@ -12,4 +12,5 @@ export type Task = {
   reminderEnabled: boolean;
   recipients: string[];
   reminderSent?: boolean;
+  cvPath?: string;
 }; 

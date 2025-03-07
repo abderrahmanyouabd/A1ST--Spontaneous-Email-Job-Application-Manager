@@ -8,7 +8,7 @@ import { Checkbox } from "@/components/ui/checkbox"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { CalendarIcon, ChevronLeft, Mail, PlusCircle, Trash2, Loader2, Pencil, Upload } from "lucide-react"
+import { CalendarIcon, ChevronLeft, Mail, PlusCircle, Trash2, Loader2, Pencil, Upload, FileUp } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { Calendar } from "@/components/ui/calendar"
@@ -358,6 +358,53 @@ export default function TasksPage() {
     }
   };
 
+  // Add function to handle CV upload
+  const handleCVUpload = async (taskId: string, file: File) => {
+    try {
+      const formData = new FormData();
+      formData.append('cv', file);
+      formData.append('taskId', taskId);
+
+      const response = await fetch('/api/cv/upload', {
+        method: 'POST',
+        body: formData,
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to upload CV');
+      }
+
+      const { filePath } = await response.json();
+
+      // Update task with CV path
+      const updatedTasks = tasks.map(task => {
+        if (task.id === taskId) {
+          return { ...task, cvPath: filePath };
+        }
+        return task;
+      });
+
+      setTasks(updatedTasks);
+      await fetch('/api/tasks', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(updatedTasks),
+      });
+
+      toast({
+        title: "CV Uploaded",
+        description: "CV has been uploaded successfully",
+      });
+    } catch (error) {
+      console.error('Error uploading CV:', error);
+      toast({
+        title: "Error",
+        description: "Failed to upload CV",
+        variant: "destructive",
+      });
+    }
+  };
+
   return (
     <div className="flex min-h-screen w-full flex-col">
       <div className="flex items-center p-4 border-b">
@@ -416,6 +463,37 @@ export default function TasksPage() {
                           <Label htmlFor={`reminder-${task.id}`} className="text-xs">
                             Send email
                           </Label>
+                        </div>
+                        
+                        <div className="flex items-center space-x-2">
+                          <input
+                            type="file"
+                            id={`cv-${task.id}`}
+                            accept=".pdf"
+                            className="hidden"
+                            onChange={(e) => {
+                              const file = e.target.files?.[0];
+                              if (file) handleCVUpload(task.id, file);
+                            }}
+                          />
+                          <label htmlFor={`cv-${task.id}`}>
+                            <Button variant="outline" size="sm" className="cursor-pointer" asChild>
+                              <div>
+                                <FileUp className="h-4 w-4 mr-2" />
+                                {task.cvPath ? 'Update CV' : 'Upload CV'}
+                              </div>
+                            </Button>
+                          </label>
+                          {task.cvPath && (
+                            <a
+                              href={task.cvPath}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="text-xs text-blue-500 hover:underline"
+                            >
+                              View CV
+                            </a>
+                          )}
                         </div>
                         
                         <div className="flex items-center space-x-2">

@@ -2,6 +2,7 @@ import type { NextApiRequest, NextApiResponse } from 'next';
 import fs from 'fs';
 import path from 'path';
 import { Task } from "@/lib/types";
+import { deleteTask } from '@/lib/actions';
 
 const tasksFilePath = path.join(process.cwd(), 'public', 'tasks.json') as string;
 
@@ -46,10 +47,15 @@ export default function handler(req: NextApiRequest, res: NextApiResponse) {
     res.status(200).json({ success: true, message: "All tasks updated successfully" });
   } else if (req.method === 'DELETE') {
     const { id } = req.body;
-    let tasks = readTasks();
-    tasks = tasks.filter((task: Task) => task.id !== id);
-    saveTasks(tasks);
-    res.status(204).end();
+    
+    // Use the deleteTask function to ensure CV files are also deleted
+    try {
+      deleteTask(id);
+      res.status(204).end();
+    } catch (error) {
+      console.error("Error deleting task:", error);
+      res.status(500).json({ error: "Failed to delete task" });
+    }
   } else {
     res.setHeader('Allow', ['GET', 'POST', 'PUT', 'DELETE']);
     res.status(405).end(`Method ${req.method} Not Allowed`);
