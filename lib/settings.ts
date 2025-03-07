@@ -3,12 +3,13 @@ import path from 'path';
 
 const settingsFilePath = path.join(process.cwd(), 'public', 'settings', 'reminderSettings.json');
 
-export const readSettings = () => {
+// Function to read reminder settings
+export const readReminderSettings = () => {
   try {
     const data = fs.readFileSync(settingsFilePath, 'utf8');
     return JSON.parse(data);
   } catch (error) {
-    console.error("Error reading settings:", error);
+    console.error("Error reading reminder settings:", error);
     return null; // Return null or default settings if there's an error
   }
 };

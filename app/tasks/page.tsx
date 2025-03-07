@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
@@ -14,41 +14,11 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Calendar } from "@/components/ui/calendar"
 import { format } from "date-fns"
 import { cn } from "@/lib/utils"
-
-// Task type definition
-export type Task = {
-  id: string
-  title: string
-  description: string
-  dueDate: Date | undefined
-  completed: boolean
-  reminderEnabled: boolean
-  recipients: string[]
-}
+import { addTask, fetchTasks, deleteTask } from "@/lib/actions"
+import { Task } from "@/lib/types"
 
 export default function TasksPage() {
-  // Sample initial tasks
-  const [tasks, setTasks] = useState<Task[]>([
-    {
-      id: "1",
-      title: "Complete project proposal",
-      description: "Finish the Q3 project proposal for client review",
-      dueDate: new Date(Date.now() + 2 * 24 * 60 * 60 * 1000), // 2 days from now
-      completed: false,
-      reminderEnabled: true,
-      recipients: ["youabd50@gmail.com"],
-    },
-    {
-      id: "2",
-      title: "Weekly team meeting",
-      description: "Prepare agenda for the weekly team sync",
-      dueDate: new Date(Date.now() + 1 * 24 * 60 * 60 * 1000), // 1 day from now
-      completed: true,
-      reminderEnabled: true,
-      recipients: ["manager@example.com"],
-    },
-  ])
-
+  const [tasks, setTasks] = useState<Task[]>([])
   const [newTask, setNewTask] = useState<Partial<Task>>({
     title: "",
     description: "",
@@ -60,8 +30,17 @@ export default function TasksPage() {
 
   const [date, setDate] = useState<Date | undefined>(undefined)
 
-  // Add a new task
-  const addTask = () => {
+  useEffect(() => {
+    const fetchTasks = async () => {
+      const response = await fetch('/api/tasks')
+      const data = await response.json()
+      setTasks(data)
+    }
+
+    fetchTasks()
+  }, [])
+
+  const addTask = async () => {
     if (!newTask.title) return
 
     const task: Task = {
@@ -74,7 +53,14 @@ export default function TasksPage() {
       recipients: newTask.recipients || [],
     }
 
-    setTasks([...tasks, task])
+    await fetch('/api/tasks', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(task),
+    })
+
     setNewTask({
       title: "",
       description: "",
@@ -83,7 +69,26 @@ export default function TasksPage() {
       reminderEnabled: true,
       recipients: [],
     })
-    setDate(undefined)
+
+    // Refresh the task list
+    const response = await fetch('/api/tasks')
+    const data = await response.json()
+    setTasks(data)
+  }
+
+  const deleteTask = async (taskId: string) => {
+    await fetch('/api/tasks', {
+      method: 'DELETE',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ id: taskId }),
+    })
+
+    // Refresh the task list
+    const response = await fetch('/api/tasks')
+    const data = await response.json()
+    setTasks(data)
   }
 
   // Toggle task completion status
@@ -94,11 +99,6 @@ export default function TasksPage() {
   // Toggle reminder setting for a task
   const toggleReminder = (id: string) => {
     setTasks(tasks.map((task) => (task.id === id ? { ...task, reminderEnabled: !task.reminderEnabled } : task)))
-  }
-
-  // Delete a task
-  const deleteTask = (id: string) => {
-    setTasks(tasks.filter((task) => task.id !== id))
   }
 
   // Filter tasks by completion status

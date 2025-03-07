@@ -1,9 +1,18 @@
 import cron from 'node-cron';
-import { sendReminderEmails } from './actions'; // Import your email sending function
-import { fetchTasks } from './actions'; // Import the fetchTasks function
+import { sendReminderEmails, fetchTasks, resetReminderStatus } from './actions'; // Ensure these paths are correct
 
-// Schedule a job to run every day at 9 AM
-cron.schedule('0 9 * * *', async () => {
-  const tasks = await fetchTasks(); // Fetch tasks from your data source
-  await sendReminderEmails(tasks); // Send emails for tasks that need reminders
-});
+// Schedule a task to run every day at a specific time
+const scheduleEmailReminders = (time: string) => {
+  const [hour, minute] = time.split(':').map(Number);
+  
+  // Schedule the task
+  cron.schedule(`0 ${minute} ${hour} * * *`, async () => {
+    console.log(`Scheduler triggered at ${new Date().toLocaleString()}`);
+    const tasks = await fetchTasks();
+    console.log(`Fetched tasks: ${JSON.stringify(tasks)}`); // Log fetched tasks
+    await sendReminderEmails(tasks);
+    resetReminderStatus(tasks); // Reset the status after sending emails
+  });
+};
+
+export default scheduleEmailReminders;

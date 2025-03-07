@@ -6,4 +6,5 @@ export type Task = {
   completed: boolean;
   reminderEnabled: boolean;
   recipients: string[];
+  reminderSent?: boolean;
 }; 

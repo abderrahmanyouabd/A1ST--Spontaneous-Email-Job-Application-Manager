@@ -11,7 +11,6 @@ import { Switch } from "@/components/ui/switch"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { ChevronLeft, Clock, Mail, Save } from "lucide-react"
 import { Separator } from "@/components/ui/separator"
-import { sendReminderEmails } from "@/lib/actions"
 import { toast } from "@/components/ui/use-toast"
 import { ToastAction } from "@/components/ui/toast"
 
@@ -86,6 +85,7 @@ export default function RemindersPage() {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          'X-Test-Email': 'true'
         },
         body: JSON.stringify({ tasks: tasksToSend }),
       });

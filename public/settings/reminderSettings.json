@@ -1,7 +1,7 @@
 {
   "enabled": true,
   "frequency": "daily",
-  "time": "09:00",
+  "time": "01:38",
   "sendToTaskOwner": true,
   "ccManagers": false,
   "sendCompletedSummary": true,
