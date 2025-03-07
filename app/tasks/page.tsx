@@ -8,7 +8,7 @@ import { Checkbox } from "@/components/ui/checkbox"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { CalendarIcon, ChevronLeft, Mail, PlusCircle, Trash2, Loader2, Pencil } from "lucide-react"
+import { CalendarIcon, ChevronLeft, Mail, PlusCircle, Trash2, Loader2, Pencil, Upload } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { Calendar } from "@/components/ui/calendar"
@@ -276,6 +276,83 @@ export default function TasksPage() {
       toast({
         title: "Error",
         description: "Failed to update task. Please try again.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  // Add this new function to handle JSON import
+  const handleImportJSON = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    try {
+      const file = event.target.files?.[0];
+      if (!file) return;
+
+      // Show loading toast
+      toast({
+        title: "Importing tasks",
+        description: "Reading JSON file...",
+      });
+
+      const reader = new FileReader();
+      reader.onload = async (e) => {
+        try {
+          const content = e.target?.result as string;
+          const importedTasks = JSON.parse(content);
+
+          // Validate the imported data structure
+          if (!Array.isArray(importedTasks)) {
+            throw new Error('Imported file must contain an array of tasks');
+          }
+
+          // Basic validation of task structure
+          const isValid = importedTasks.every(task => 
+            task.id && 
+            task.title && 
+            typeof task.completed === 'boolean' &&
+            typeof task.reminderEnabled === 'boolean'
+          );
+
+          if (!isValid) {
+            throw new Error('Invalid task format in imported file');
+          }
+
+          // Send to API to update tasks.json
+          const response = await fetch('/api/tasks/import', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(importedTasks),
+          });
+
+          if (!response.ok) {
+            throw new Error('Failed to import tasks');
+          }
+
+          // Update local state
+          setTasks(importedTasks);
+
+          toast({
+            title: "Success",
+            description: `Imported ${importedTasks.length} tasks successfully`,
+            variant: "default",
+          });
+        } catch (error) {
+          console.error('Error importing tasks:', error);
+          toast({
+            title: "Error",
+            description: error instanceof Error ? error.message : "Failed to import tasks",
+            variant: "destructive",
+          });
+        }
+      };
+
+      reader.readAsText(file);
+    } catch (error) {
+      console.error('Error handling file:', error);
+      toast({
+        title: "Error",
+        description: "Failed to read the file",
         variant: "destructive",
       });
     }
@@ -644,23 +721,41 @@ export default function TasksPage() {
         </Card>
       </div>
       <div className="flex items-center justify-between p-4 border-t">
-        <Button 
-          onClick={handleSendAllPendingEmails}
-          className="flex items-center"
-          disabled={isSending}
-        >
-          {isSending ? (
-            <>
-              <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-              Sending Emails...
-            </>
-          ) : (
-            <>
-              <Mail className="h-4 w-4 mr-2" />
-              Send All Pending Emails
-            </>
-          )}
-        </Button>
+        <div className="flex items-center space-x-2">
+          <input
+            type="file"
+            id="json-import"
+            accept=".json"
+            className="hidden"
+            onChange={handleImportJSON}
+          />
+          <label htmlFor="json-import">
+            <Button variant="outline" className="cursor-pointer" asChild>
+              <div>
+                <Upload className="h-4 w-4 mr-2" />
+                Import Tasks
+              </div>
+            </Button>
+          </label>
+          
+          <Button 
+            onClick={handleSendAllPendingEmails}
+            className="flex items-center"
+            disabled={isSending}
+          >
+            {isSending ? (
+              <>
+                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                Sending Emails...
+              </>
+            ) : (
+              <>
+                <Mail className="h-4 w-4 mr-2" />
+                Send All Pending Emails
+              </>
+            )}
+          </Button>
+        </div>
         {isSending && (
           <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
             <div className="bg-white p-6 rounded-lg shadow-lg max-w-md w-full mx-4">
